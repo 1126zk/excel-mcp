@@ -1,0 +1,26 @@
+{
+  "name": "casual-sheets",
+  "version": "0.3.3",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@10.33.4",
+  "scripts": {
+    "dev:web": "corepack pnpm --filter @sheet/web dev",
+    "build:web": "corepack pnpm --filter @sheet/web build",
+    "typecheck": "corepack pnpm -r typecheck",
+    "release": "corepack pnpm --filter @casualoffice/sheets build && corepack pnpm --filter @casualoffice/sheets publish"
+  },
+  "devDependencies": {
+    "jszip": "^3.10.1"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "exceljs@4.4.0": "patches/exceljs@4.4.0.patch",
+      "@univerjs/ui@0.25.0": "patches/@univerjs__ui@0.25.0.patch"
+    }
+  }
+}

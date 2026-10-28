@@ -1,0 +1,182 @@
+diff --git a/lib/cjs/index.js b/lib/cjs/index.js
+index af4e095368e2d295543229329ce91389227e6b14..dae2c0579fc733d4aae155286eff7375b2bba7ce 100644
+--- a/lib/cjs/index.js
++++ b/lib/cjs/index.js
+@@ -4312,8 +4312,8 @@ function UIQuickTileMenuGroup(props) {
+ const contentClassName = "univer-inline-flex univer-items-center univer-gap-2";
+ const menuViewportPadding = 8;
+ const submenuOverlapOffset = 2;
+-const submenuVisualGap = 20;
+-const CONTEXT_MENU_SUBMENU_CLOSE_DELAY = 500;
++const submenuVisualGap = 4;
++const CONTEXT_MENU_SUBMENU_CLOSE_DELAY = 80;
+ const CONTEXT_MENU_SUBMENU_PORTAL_ATTR = "data-u-context-menu-submenu";
+ function isNonSelectableLabel(label) {
+ 	return typeof label === "object" && (label === null || label === void 0 ? void 0 : label.selectable) === false;
+@@ -4384,6 +4384,10 @@ function ContextMenuMenu(props) {
+ 	const { menuSchemas, menuSessionVersion, submenuPortalContainer, activeItemIds, hiddenItemIds, onOptionSelect, maxMenuHeight } = props;
+ 	const localeService = (0, _wendellhu_redi_react_bindings.useDependency)(_univerjs_core.LocaleService);
+ 	const hiddenGroupStates = useContextGroupHiddenStates$1(menuSchemas);
++	const [openSubmenuKey, setOpenSubmenuKey] = (0, react.useState)(null);
++	const closeSubmenu = (0, react.useCallback)((key) => {
++		setOpenSubmenuKey((current) => current === key ? null : current);
++	}, []);
+ 	const visibleSchemas = (0, react.useMemo)(() => {
+ 		return menuSchemas.filter((item) => {
+ 			if (!hasRenderableContextMenuSchema(item)) return false;
+@@ -4401,7 +4405,10 @@ function ContextMenuMenu(props) {
+ 			submenuPortalContainer,
+ 			onOptionSelect,
+ 			maxMenuHeight,
+-			hiddenItemIds
++			hiddenItemIds,
++			submenuOpen: openSubmenuKey === menuSchema.key,
++			onSubmenuOpen: () => setOpenSubmenuKey(menuSchema.key),
++			onSubmenuClose: () => closeSubmenu(menuSchema.key)
+ 		}, menuSchema.key);
+ 		if (!((_menuSchema$children2 = menuSchema.children) === null || _menuSchema$children2 === void 0 ? void 0 : _menuSchema$children2.length)) return null;
+ 		if (menuSchema.quickLayout) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+@@ -4429,7 +4436,10 @@ function ContextMenuMenu(props) {
+ 				hiddenItemIds,
+ 				onOptionSelect,
+ 				maxMenuHeight,
+-				compact: true
++				compact: true,
++				submenuOpen: openSubmenuKey === childSchema.key,
++				onSubmenuOpen: () => setOpenSubmenuKey(childSchema.key),
++				onSubmenuClose: () => closeSubmenu(childSchema.key)
+ 			}, childSchema.key))
+ 		}, menuSchema.key);
+ 		return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+@@ -4445,13 +4455,16 @@ function ContextMenuMenu(props) {
+ 				activeItemIds,
+ 				hiddenItemIds,
+ 				onOptionSelect,
+-				maxMenuHeight
++				maxMenuHeight,
++				submenuOpen: openSubmenuKey === childSchema.key,
++				onSubmenuOpen: () => setOpenSubmenuKey(childSchema.key),
++				onSubmenuClose: () => closeSubmenu(childSchema.key)
+ 			}, childSchema.key))]
+ 		}, menuSchema.key);
+ 	}) });
+ }
+ function ContextMenuMenuItem(props) {
+-	const { menuKey, menuItem, menuSessionVersion, submenuPortalContainer, activeItemIds, hiddenItemIds = [], compact = false, onOptionSelect, maxMenuHeight } = props;
++	const { menuKey, menuItem, menuSessionVersion, submenuPortalContainer, activeItemIds, hiddenItemIds = [], compact = false, onOptionSelect, maxMenuHeight, submenuOpen, onSubmenuOpen, onSubmenuClose } = props;
+ 	const localeService = (0, _wendellhu_redi_react_bindings.useDependency)(_univerjs_core.LocaleService);
+ 	const direction = (0, _wendellhu_redi_react_bindings.useObservable)(localeService.direction$);
+ 	const menuManagerService = (0, _wendellhu_redi_react_bindings.useDependency)(IMenuManagerService);
+@@ -4462,7 +4475,11 @@ function ContextMenuMenuItem(props) {
+ 	const selectorItem = menuItem;
+ 	const selectionsFromObservable = (0, _wendellhu_redi_react_bindings.useObservable)((0, rxjs.isObservable)(selectorItem.selections) ? selectorItem.selections : void 0);
+ 	const [inputValue, setInputValue] = (0, react.useState)(value);
+-	const [submenuVisible, setSubmenuVisible] = (0, react.useState)(false);
++	const submenuVisible = !!submenuOpen;
++	const setSubmenuVisible = (0, react.useCallback)((visible) => {
++		if (visible) onSubmenuOpen();
++		else onSubmenuClose();
++	}, [onSubmenuOpen, onSubmenuClose]);
+ 	const [submenuPosition, setSubmenuPosition] = (0, react.useState)({
+ 		left: 0,
+ 		top: 0
+@@ -4504,7 +4521,7 @@ function ContextMenuMenuItem(props) {
+ 		submenuCloseTimerRef.current = setTimeout(() => {
+ 			submenuCloseTimerRef.current = null;
+ 			setSubmenuVisible(false);
+-		}, 500);
++		}, CONTEXT_MENU_SUBMENU_CLOSE_DELAY);
+ 	}, [clearSubmenuCloseTimer]);
+ 	(0, react.useEffect)(() => {
+ 		setInputValue(value);
+diff --git a/lib/es/index.js b/lib/es/index.js
+index 193f5d3f7cd955d9d9b24a5a0096a1cc3e1cd619..1b3d4d9196c10d0868f05ad423c50e05fdc15d64 100644
+--- a/lib/es/index.js
++++ b/lib/es/index.js
+@@ -4282,8 +4282,8 @@ function UIQuickTileMenuGroup(props) {
+ const contentClassName = "univer-inline-flex univer-items-center univer-gap-2";
+ const menuViewportPadding = 8;
+ const submenuOverlapOffset = 2;
+-const submenuVisualGap = 20;
+-const CONTEXT_MENU_SUBMENU_CLOSE_DELAY = 500;
++const submenuVisualGap = 4;
++const CONTEXT_MENU_SUBMENU_CLOSE_DELAY = 80;
+ const CONTEXT_MENU_SUBMENU_PORTAL_ATTR = "data-u-context-menu-submenu";
+ function isNonSelectableLabel(label) {
+ 	return typeof label === "object" && (label === null || label === void 0 ? void 0 : label.selectable) === false;
+@@ -4354,6 +4354,10 @@ function ContextMenuMenu(props) {
+ 	const { menuSchemas, menuSessionVersion, submenuPortalContainer, activeItemIds, hiddenItemIds, onOptionSelect, maxMenuHeight } = props;
+ 	const localeService = useDependency(LocaleService);
+ 	const hiddenGroupStates = useContextGroupHiddenStates$1(menuSchemas);
++	const [openSubmenuKey, setOpenSubmenuKey] = useState(null);
++	const closeSubmenu = useCallback((key) => {
++		setOpenSubmenuKey((current) => current === key ? null : current);
++	}, []);
+ 	const visibleSchemas = useMemo(() => {
+ 		return menuSchemas.filter((item) => {
+ 			if (!hasRenderableContextMenuSchema(item)) return false;
+@@ -4371,7 +4375,10 @@ function ContextMenuMenu(props) {
+ 			submenuPortalContainer,
+ 			onOptionSelect,
+ 			maxMenuHeight,
+-			hiddenItemIds
++			hiddenItemIds,
++			submenuOpen: openSubmenuKey === menuSchema.key,
++			onSubmenuOpen: () => setOpenSubmenuKey(menuSchema.key),
++			onSubmenuClose: () => closeSubmenu(menuSchema.key)
+ 		}, menuSchema.key);
+ 		if (!((_menuSchema$children2 = menuSchema.children) === null || _menuSchema$children2 === void 0 ? void 0 : _menuSchema$children2.length)) return null;
+ 		if (menuSchema.quickLayout) return /* @__PURE__ */ jsx("div", {
+@@ -4399,7 +4406,10 @@ function ContextMenuMenu(props) {
+ 				hiddenItemIds,
+ 				onOptionSelect,
+ 				maxMenuHeight,
+-				compact: true
++				compact: true,
++				submenuOpen: openSubmenuKey === childSchema.key,
++				onSubmenuOpen: () => setOpenSubmenuKey(childSchema.key),
++				onSubmenuClose: () => closeSubmenu(childSchema.key)
+ 			}, childSchema.key))
+ 		}, menuSchema.key);
+ 		return /* @__PURE__ */ jsxs("div", {
+@@ -4415,13 +4425,16 @@ function ContextMenuMenu(props) {
+ 				activeItemIds,
+ 				hiddenItemIds,
+ 				onOptionSelect,
+-				maxMenuHeight
++				maxMenuHeight,
++				submenuOpen: openSubmenuKey === childSchema.key,
++				onSubmenuOpen: () => setOpenSubmenuKey(childSchema.key),
++				onSubmenuClose: () => closeSubmenu(childSchema.key)
+ 			}, childSchema.key))]
+ 		}, menuSchema.key);
+ 	}) });
+ }
+ function ContextMenuMenuItem(props) {
+-	const { menuKey, menuItem, menuSessionVersion, submenuPortalContainer, activeItemIds, hiddenItemIds = [], compact = false, onOptionSelect, maxMenuHeight } = props;
++	const { menuKey, menuItem, menuSessionVersion, submenuPortalContainer, activeItemIds, hiddenItemIds = [], compact = false, onOptionSelect, maxMenuHeight, submenuOpen, onSubmenuOpen, onSubmenuClose } = props;
+ 	const localeService = useDependency(LocaleService);
+ 	const direction = useObservable(localeService.direction$);
+ 	const menuManagerService = useDependency(IMenuManagerService);
+@@ -4432,7 +4445,11 @@ function ContextMenuMenuItem(props) {
+ 	const selectorItem = menuItem;
+ 	const selectionsFromObservable = useObservable(isObservable(selectorItem.selections) ? selectorItem.selections : void 0);
+ 	const [inputValue, setInputValue] = useState(value);
+-	const [submenuVisible, setSubmenuVisible] = useState(false);
++	const submenuVisible = !!submenuOpen;
++	const setSubmenuVisible = useCallback((visible) => {
++		if (visible) onSubmenuOpen();
++		else onSubmenuClose();
++	}, [onSubmenuOpen, onSubmenuClose]);
+ 	const [submenuPosition, setSubmenuPosition] = useState({
+ 		left: 0,
+ 		top: 0
+@@ -4474,7 +4491,7 @@ function ContextMenuMenuItem(props) {
+ 		submenuCloseTimerRef.current = setTimeout(() => {
+ 			submenuCloseTimerRef.current = null;
+ 			setSubmenuVisible(false);
+-		}, 500);
++		}, CONTEXT_MENU_SUBMENU_CLOSE_DELAY);
+ 	}, [clearSubmenuCloseTimer]);
+ 	useEffect(() => {
+ 		setInputValue(value);
